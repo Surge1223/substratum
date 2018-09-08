@@ -7,6 +7,15 @@
 
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
+apply plugin: 'jacoco'
+
+jacoco {
+    toolVersion = "$jacocoVersion"
+}
+
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+}
 
 final def gitHash = { ->
     final def stdout = new ByteArrayOutputStream()
@@ -45,6 +54,7 @@ android {
         buildConfigField "java.util.Date", "buildTime", "new java.util.Date(" + System.currentTimeMillis() + "L)"
         buildConfigField "String", "GIT_HASH", "\"${gitHash()}\""
         buildConfigField "boolean", "ENHANCED_LOGGING", "false"
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
     }
 
     // If the keystore file exists
@@ -68,6 +78,7 @@ android {
         debug {
             debuggable true
             minifyEnabled false
+            testCoverageEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release {
@@ -90,14 +101,41 @@ android {
         exclude 'META-INF/LICENSE-FIREBASE.txt'
         exclude 'META-INF/NOTICE'
     }
+
+    testOptions {
+        execution 'ANDROID_TEST_ORCHESTRATOR'
+        animationsDisabled true
+
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
 }
 
 ext {
-    databindingVersion = '3.3.0-alpha05'
+    databindingVersion = '3.3.0-alpha08'
     androidXVersion = '1.0.0-rc02'
     firebaseVersion = '16.0.3'
     crashlyticsVersion = '2.9.5'
     glideVersion = '4.8.0'
+}
+
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+    def debugTree = fileTree(dir: "$project.buildDir/intermediates/classes/debug", excludes: fileFilter)
+    def mainSrc = "$project.projectDir/src/main/java"
+
+    sourceDirectories = files([mainSrc])
+    classDirectories = files([debugTree])
+    executionData = fileTree(dir: project.buildDir, includes: [
+            'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec'
+    ])
 }
 
 dependencies {
@@ -164,5 +202,11 @@ dependencies {
 
     // Splash screen svg animation
     implementation 'com.jaredrummler:animated-svg-view:1.0.5'
+
+    // Code coverage tests
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    androidTestUtil 'com.android.support.test:orchestrator:1.0.2'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.robolectric:robolectric:3.7.1'
 }
 apply plugin: 'com.google.gms.google-services'
