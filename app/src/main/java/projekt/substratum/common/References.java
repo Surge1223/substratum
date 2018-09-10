@@ -193,6 +193,7 @@ public class References {
     public static final String PIXEL_NEXUS_DIR = "/system/overlay/";
     public static final String LEGACY_NEXUS_DIR = "/system/vendor/overlay/";
     public static final String P_DIR = "/system/app/";
+    public static final String DATA_THEME_DIR = "/data/system/theme/";
     public static final String VENDOR_DIR = "/vendor/overlay/";
     // Notification Channel
     public static final String DEFAULT_NOTIFICATION_CHANNEL_ID = "default";

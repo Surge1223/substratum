@@ -40,6 +40,7 @@ import java.util.List;
 
 import static projekt.substratum.common.Packages.getLiveOverlayVersion;
 import static projekt.substratum.common.References.BYPASS_SUBSTRATUM_BUILDER_DELETION;
+import static projekt.substratum.common.References.DATA_THEME_DIR;
 import static projekt.substratum.common.References.ENABLE_DIRECT_ASSETS_LOGGING;
 import static projekt.substratum.common.References.EXTERNAL_STORAGE_CACHE;
 import static projekt.substratum.common.References.LEGACY_NEXUS_DIR;
@@ -50,6 +51,7 @@ import static projekt.substratum.common.References.SUBSTRATUM_BUILDER_CACHE;
 import static projekt.substratum.common.References.VENDOR_DIR;
 import static projekt.substratum.common.Resources.SETTINGS;
 import static projekt.substratum.common.Resources.SYSTEMUI;
+import static projekt.substratum.common.Systems.checkSubstratumService;
 import static projekt.substratum.common.commands.FileOperations.DA_LOG;
 
 public class SubstratumBuilder {
@@ -353,7 +355,7 @@ public class SubstratumBuilder {
         if (!hasErroredOut) {
             try {
                 // Delete the previous APK if it exists in the dashboard folder
-                FileOperations.delete(context, signedOverlayAPKPath);
+                //FileOperations.delete(context, signedOverlayAPKPath);
 
                 // Sign with the built-in test key/certificate.
                 String source = workArea + '/' + overlayPackage + '.' + parse2ThemeName +
@@ -397,28 +399,45 @@ public class SubstratumBuilder {
             }
         }
 
-        // 8. Install the APK silently
-        // Superuser needed as this requires elevated privileges to run these commands
-        if (!hasErroredOut) {
+         if (!hasErroredOut) {
             if (isDeviceOMS) {
-                if (Systems.IS_PIE && !Systems.checkSubstratumService(context)) {
+                if (Systems.IS_PIE && !checkSubstratumService(context)) {
                     // Brute force install APKs because thanks Google
                     FileOperations.mountRW();
                     final String overlay = P_DIR + "_" + overlayName + ".apk";
                     FileOperations.move(context, signedOverlayAPKPath, overlay);
                     FileOperations.setPermissions(644, overlay);
                     FileOperations.mountRO();
-                } else if (!Systems.isNewSamsungDeviceAndromeda(context)) {
+                } else if (Systems.IS_PIE && checkSubstratumService(context)) {
+                    try {
+                        ArrayList<String> temp = new ArrayList<>();
+                        final String overlays = DATA_THEME_DIR + "_" + overlayName + ".apk";
+                        FileOperations.move(context, signedOverlayAPKPath, overlays);
+                        temp.add(overlays);
+                        ThemeManager.installOverlay(context, temp);
+                        Substratum.log(References.SUBSTRATUM_BUILDER, "Silently installing APK...");
+                    } catch (Exception e) {
+                        dumpErrorLogs(overlayPackage,
+                                "Overlay APK has failed to install! \" (Exception) " +
+                                        "[Error: " + e.getMessage() + ']');
+                        hasErroredOut = true;
+                        dumpErrorLogs(overlayPackage,
+                                "Installation of \"" + overlayPackage + "\" has failed.");
+                    }
+                }
+                    else if (!Systems.isNewSamsungDeviceAndromeda(context)) {
                     specialSnowflake = false;
                     if (Resources.FRAMEWORK.equals(overlayPackage) ||
                             "projekt.substratum".equals(overlayPackage)) {
                         specialSnowflake = ThemeManager.isOverlayEnabled(context, overlayName) ||
-                                (Systems.IS_OREO && !overlayUpdater);
+                                ((Systems.IS_OREO || Systems.IS_PIE) && !overlayUpdater);
                     }
 
                     if (!specialSnowflake) {
                         try {
-                            ThemeManager.installOverlay(context, signedOverlayAPKPath);
+                            ArrayList<String> temp = new ArrayList<>();
+                            temp.add(signedOverlayAPKPath);
+                            ThemeManager.installOverlay(context, temp);
                             Substratum.log(References.SUBSTRATUM_BUILDER, "Silently installing APK...");
                         } catch (Exception e) {
                             dumpErrorLogs(overlayPackage,

@@ -587,8 +587,9 @@ public class FileOperations {
                 if (ENABLE_DIRECT_ASSETS_LOGGING)
                     Substratum.log(DA_LOG, "This is a file object, directly copying...");
                 if (ENABLE_DIRECT_ASSETS_LOGGING) Substratum.log(DA_LOG, listDir);
-                final boolean copied = copyFile(assetManager, listDir, destination, remember,
+                copyFile(assetManager, listDir, destination, remember,
                         cipher);
+                final boolean copied;
                 if (ENABLE_DIRECT_ASSETS_LOGGING) Substratum.log(DA_LOG, "File operation status: " +
                         ((copied) ? "Success!" : "Failed"));
             } else {

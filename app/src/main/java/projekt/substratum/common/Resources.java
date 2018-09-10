@@ -166,7 +166,7 @@ public class Resources {
         if (checkSubstratumService(context)) {
             Substratum.log(SUBSTRATUM_LOG, "This system fully supports font hotswapping.");
             return true;
-        } else if (Systems.IS_OREO && !checkSubstratumService(context)) {
+        } else if ((Systems.IS_OREO || Systems.IS_PIE) && !checkSubstratumService(context)) {
             return false;
         }
         try {

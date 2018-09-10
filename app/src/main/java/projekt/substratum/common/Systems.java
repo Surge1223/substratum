@@ -66,8 +66,8 @@ public class Systems {
     public static final boolean IS_NOUGAT = Build.VERSION.SDK_INT == Build.VERSION_CODES.N ||
             Build.VERSION.SDK_INT == Build.VERSION_CODES.N_MR1;
 
-    private static Boolean checkPackageSupported;
-    private static SharedPreferences prefs = Substratum.getPreferences();
+    static Boolean checkPackageSupported;
+    static SharedPreferences prefs = Substratum.getPreferences();
     /**
      * Cached boolean to find if system
      * passes all cases of Samsung checks
@@ -213,7 +213,7 @@ public class Systems {
                 if (checkThemeInterfacer(context) || checkSubstratumService(context)) {
                     foundOms = true;
                 } else if (sonyCheck == null || sonyCheck.length() == 0) {
-                    boolean isOMSRunning = isServiceRunning(IOverlayManager.class,
+                    Boolean isOMSRunning = isServiceRunning(IOverlayManager.class,
                             context.getApplicationContext());
                     if (isOMSRunning || IS_OREO || IS_PIE) {
                         Substratum.log(SUBSTRATUM_LOG,
@@ -269,7 +269,7 @@ public class Systems {
      */
     public static void setAndCheckSubstratumService() {
         StringBuilder check = References.runShellCommand("cmd -l");
-        boolean present = check != null && check.toString().contains("substratum");
+        Boolean present = check != null && check.toString().contains("substratum");
         prefs.edit().putBoolean("substratum_service_present", false).apply();
         if (present) {
             prefs.edit().putBoolean("substratum_service_present", true).apply();
@@ -617,8 +617,8 @@ public class Systems {
      * @param stringArray List of packages to check
      * @return True if blacklisted packages found
      */
-    static Boolean checkPackageRegex(Context context,
-                                     String[] stringArray) {
+    public static Boolean checkPackageRegex(Context context,
+                                            String[] stringArray) {
         if (stringArray.length == 0) return true;
         final PackageManager pm = context.getPackageManager();
         List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
@@ -658,7 +658,7 @@ public class Systems {
 
             Map<String, String> listOfRoms =
                     ReadSupportedROMsFile.read(context.getCacheDir() + "/" + fileName);
-            boolean supported = false;
+            Boolean supported = false;
 
             // First check if it is a valid prop
             for (Object o : listOfRoms.entrySet()) {

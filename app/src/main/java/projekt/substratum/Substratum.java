@@ -128,7 +128,7 @@ public class Substratum extends Application {
         List<ApplicationInfo> currentApps =
                 pm.getInstalledApplications(PackageManager.GET_META_DATA);
         initialPackageCount = currentApps.size();
-        if (Systems.IS_OREO) initialOverlayCount = ThemeManager.listAllOverlays(context).size();
+        if ((Systems.IS_OREO || Systems.IS_PIE)) initialOverlayCount = ThemeManager.listAllOverlays(context).size();
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
             @Override
@@ -144,12 +144,12 @@ public class Substratum extends Application {
                 List<ApplicationInfo> currentApps =
                         pm.getInstalledApplications(PackageManager.GET_META_DATA);
                 List<String> listOfThemes = new ArrayList<>();
-                if (Systems.IS_OREO) listOfThemes = ThemeManager.listAllOverlays(context);
+                if ((Systems.IS_OREO || Systems.IS_PIE)) listOfThemes = ThemeManager.listAllOverlays(context);
                 if (initialPackageCount != currentApps.size() ||
-                        (Systems.IS_OREO &&
+                        ((Systems.IS_OREO || Systems.IS_PIE)) &&
                                 initialOverlayCount >= 1 &&
-                                initialOverlayCount != listOfThemes.size())) {
-                    if (Systems.IS_OREO)
+                                initialOverlayCount != listOfThemes.size()) {
+                    if ((Systems.IS_OREO || Systems.IS_PIE))
                         initialOverlayCount = ThemeManager.listAllOverlays(context).size();
                     initialPackageCount = currentApps.size();
                     Broadcasts.sendOverlayRefreshMessage(context);

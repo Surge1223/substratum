@@ -106,7 +106,7 @@ public class CompilerCommands {
             if (!themeOms)
                 overlayElement.setAttribute("android:priority", String.valueOf(legacyPriority));
             overlayElement.setAttribute("android:targetPackage", targetPackage);
-            if (Systems.IS_OREO) overlayElement.setAttribute("android:isStatic", "false");
+            if ((Systems.IS_OREO || Systems.IS_PIE)) overlayElement.setAttribute("android:isStatic", "false");
             rootElement.appendChild(overlayElement);
 
             Element applicationElement = document.createElement("application");

@@ -57,6 +57,7 @@ import static projekt.substratum.common.References.EXTERNAL_STORAGE_SAMSUNG_OVER
 import static projekt.substratum.common.References.INTERFACER_PACKAGE;
 import static projekt.substratum.common.References.LEGACY_NEXUS_DIR;
 import static projekt.substratum.common.References.P_DIR;
+import static projekt.substratum.common.References.runShellCommand;
 import static projekt.substratum.common.Resources.FRAMEWORK;
 import static projekt.substratum.common.Resources.PIXEL_OVERLAY_PACKAGES;
 import static projekt.substratum.common.Resources.SETTINGS;
@@ -66,6 +67,7 @@ import static projekt.substratum.common.Resources.SYSTEMUI_HEADERS;
 import static projekt.substratum.common.Resources.SYSTEMUI_NAVBARS;
 import static projekt.substratum.common.Resources.SYSTEMUI_QSTILES;
 import static projekt.substratum.common.Resources.SYSTEMUI_STATUSBARS;
+import static projekt.substratum.common.Systems.IS_PIE;
 import static projekt.substratum.common.Systems.checkAndromeda;
 import static projekt.substratum.common.Systems.checkOMS;
 import static projekt.substratum.common.Systems.checkSubstratumService;
@@ -423,7 +425,7 @@ public class ThemeManager {
         } catch (Exception e) {
             // At this point, we probably ran into a legacy command or stock OMS
             if (!isNewSamsungDeviceAndromeda(context) &&
-                    (Systems.checkOMS(context) || Systems.IS_OREO) &&
+                    (Systems.checkOMS(context) || Systems.IS_OREO || Systems.IS_PIE) &&
                     !MainActivity.instanceBasedAndromedaFailure) {
                 String prefix;
                 if (overlayState == STATE_ENABLED) {
@@ -680,22 +682,34 @@ public class ThemeManager {
      * Install an overlay
      *
      * @param context Context
-     * @param overlay Overlay to be installed
+     * @param overlays Overlays to be installed
      */
     public static void installOverlay(Context context,
-                                      String overlay) {
-        if (checkSubstratumService(context)) {
-            ArrayList<String> list = new ArrayList<>();
-            list.add(overlay);
-            SubstratumService.installOverlay(list);
+                                      ArrayList<String> overlays) {
+        if ((Systems.IS_PIE) && (!checkSubstratumService(context))) {
+            FileOperations.mountRW();
+            for (String overlay : overlays) {
+                FileOperations.bruteforceDelete(P_DIR + '_' + overlay + ".apk");
+            }
+            FileOperations.mountRO();
+            Substratum.log("ThemeManager", "Detected Pie, no sysserv");
+        } else if (checkSubstratumService(context)) {
+            try {
+                SubstratumService.installOverlay(overlays);
+            } catch (Exception e) {
+                Substratum.log("ThemeManager", "Pie sysserv: error installing overlays");
+            }
+            StringBuilder command = new StringBuilder();
+            for (String packageName : overlays) {
+                command.append((command.length() == 0) ? "" : " && ")
+                        .append("pm install ")
+                        .append(packageName);
+            }
+            runShellCommand(command.toString());
         } else if (checkThemeInterfacer(context)) {
-            ArrayList<String> list = new ArrayList<>();
-            list.add(overlay);
-            ThemeInterfacerService.installOverlays(list);
+            ThemeInterfacerService.installOverlays(overlays);
         } else if (checkAndromeda(context) && !isNewSamsungDeviceAndromeda(context)) {
-            List<String> list = new ArrayList<>();
-            list.add(overlay);
-            if (!AndromedaService.installOverlays(list)) {
+            if (!AndromedaService.installOverlays(overlays)) {
                 Handler handler = new Handler(Looper.getMainLooper());
                 handler.post(() ->
                         Toast.makeText(
@@ -705,7 +719,15 @@ public class ThemeManager {
                 );
             }
         } else {
-            ElevatedCommands.runThreadedCommand("pm install -r " + overlay);
+            StringBuilder command = new StringBuilder();
+            for (String packageName : overlays) {
+                command.append((command.length() == 0) ? "" : " && ")
+                        .append("pm install ")
+                        .append(packageName);
+            }
+            ElevatedCommands.runThreadedCommand(command.toString());
+            Substratum.log("ThemeManager", "Dont know what we detected at all");
+
         }
     }
 
@@ -738,6 +760,7 @@ public class ThemeManager {
         // if enabled list is not contains any overlays
         if (checkSubstratumService(context)) {
             SubstratumService.uninstallOverlay(overlays, shouldRestartUi);
+            Substratum.log("ThemeManager", "Detected Pie sysserv for uninstall");
         } else if (checkThemeInterfacer(context) && !Systems.isSamsungDevice(context)) {
             ThemeInterfacerService.uninstallOverlays(
                     overlays

@@ -512,10 +512,12 @@ class OverlaysManager {
                             }
                             ThemeManager.disableOverlay(context, overlaysToDisable);
                         }
+                        ArrayList<String> lateInstall = new ArrayList<>();
                         for (int i = 0; i < overlays.currentInstance.lateInstall.size(); i++) {
+                            lateInstall.add(overlays.currentInstance.lateInstall.get(i));
                             ThemeManager.installOverlay(
                                     overlays.getActivity(),
-                                    overlays.currentInstance.lateInstall.get(i));
+                                    lateInstall);
                         }
                     } else {
                         Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -1319,7 +1321,7 @@ class OverlaysManager {
             Overlays overlays = ref.get();
             Context context = refContext.get();
             if ((context != null) && (overlays != null)) {
-                if (Systems.IS_OREO &&
+                if ((Systems.IS_OREO || Systems.IS_PIE) &&
                         isSystemSecurityPatchNewer(SECURITY_UPDATE_WARN_AFTER) &&
                         !checkSubstratumService(context)) {
                     if (!overlays.prefs.getBoolean("new_stock_dismissal", false)) {
@@ -1445,10 +1447,10 @@ class OverlaysManager {
                     new Handler(thread.getLooper()).post(() -> {
                         ArrayList<String> packages = new ArrayList<>();
                         for (String o : overlays.currentInstance.lateInstall) {
-                            ThemeManager.installOverlay(context, o);
                             String packageName =
                                     o.substring(o.lastIndexOf('/') + 1, o.lastIndexOf('-'));
                             packages.add(packageName);
+                            ThemeManager.installOverlay(context, packages);
                             if (!Systems.isNewSamsungDevice() &&
                                     checkThemeInterfacer(context) ||
                                     Systems.checkAndromeda(context)) {
