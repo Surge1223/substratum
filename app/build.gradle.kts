@@ -10,6 +10,15 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.util.Properties
 
+
+repositories {
+    google()
+    jcenter()
+    mavenCentral()
+    maven("https://dl.bintray.com/kotlin/kotlin-dev")
+    maven("https://dl.bintray.com/kotlin/kotlin-eap")
+}
+
 plugins {
     id("com.android.application")
 }
@@ -24,6 +33,14 @@ fun gitHash(): String {
     }
 }
 
+val appDir = rootDir.resolve("src/main/")
+val libsDir = appDir.resolve("libs")
+
+val androidPresets = mapOf(
+        "arm32" to ("androidNativeArm32" to "$libsDir/armeabi-v7a"),
+        "arm64" to ("androidNativeArm64" to "$libsDir/arm64-v8a")
+)
+
 android {
     compileSdkVersion(28)
     dataBinding.isEnabled = true
@@ -36,11 +53,39 @@ android {
         buildConfigField("java.util.Date", "buildTime", "new java.util.Date(${System.currentTimeMillis()}L)")
         buildConfigField("String", "GIT_HASH", "\"${gitHash()}\"")
         setProperty("archivesBaseName", "substratum_${gitHash()}")
+        defaultConfig.ndk {
+            moduleName = "subscompile"
+            abiFilters("arm64-v8a")
+        }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
+    sourceSets {
+        val main by getting {
+            jni.srcDirs("src/main/jni")
+            jniLibs.srcDirs("libs")
+            jniLibs.srcDir("src/main/libs")
+        }
+    }
+
+    externalNativeBuild {
+        ndkBuild {
+            setPath("src/main/jni/Android.mk")
+        }
+    }
+
+    packagingOptions {
+        pickFirst("lib/x86_64/libsubscompile.so")
+        pickFirst("lib/armeabi/libsubscompile.so")
+        pickFirst("lib/x86/libsubscompile.so")
+        pickFirst("lib/armeabi-v7a/libsubscompile.so")
+        pickFirst("lib/arm64-v8a/libsubscompile.so")
+    }
+
     if (keystorePropertiesFile.exists()) {
         val keystoreProperties = Properties()
         keystoreProperties.load(FileInputStream(keystorePropertiesFile))

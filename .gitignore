@@ -10,3 +10,9 @@ build
 keystore.properties
 *.jks
 output.json
+/app/.cxx
+app/src/main/libs/
+*.o
+*o.d
+/app/src/main/jni/obj
+/app/src/main/jni/libs/*/*.so
