@@ -45,6 +45,7 @@ import projekt.substratum.adapters.fragments.settings.ValidatorError;
 import projekt.substratum.common.Packages;
 import projekt.substratum.common.References;
 import projekt.substratum.common.Systems;
+import projekt.substratum.compiler.aapt.Aapt;
 import projekt.substratum.util.helpers.TranslatorParser;
 import projekt.substratum.util.helpers.ValidatorUtils;
 import projekt.substratum.util.views.Lunchbar;
@@ -378,6 +379,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                         Snackbar.LENGTH_LONG);
                 lunchbar.setAction(getString(R.string.restart), v -> Substratum.restartSubstratum(context));
                 lunchbar.show();
+                try {
+                    Substratum.getInstance().runAapt();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             });
             sheetDialog.setContentView(sheetView);
             sheetDialog.show();

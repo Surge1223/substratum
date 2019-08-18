@@ -52,9 +52,9 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS += $(androidfw_CFLAGS)
 LOCAL_C_INCLUDES := $(androidfw_C_INCLUDES)
 LOCAL_CPPFLAGS += \
-    -std=c++1z \
-    -D__STDC_FORMAT_MACROS \
-    -Wno-macro-redefined
+	-std=c++1z \
+	-D__STDC_FORMAT_MACROS \
+	-Wno-macro-redefined
 LOCAL_SRC_FILES := $(androidfw_SRC_FILES)
 include $(BUILD_STATIC_LIBRARY)
 
@@ -103,11 +103,11 @@ LOCAL_CPPFLAGS += \
     -Wno-macro-redefined
 endif
 LOCAL_C_INCLUDES := \
-		$(LOCAL_PATH)/libutils/include \
-		$(LOCAL_PATH)/expat \
-		$(LOCAL_PATH)/include \
-		$(LOCAL_PATH)/libutils/include/c++/4.9.x \
-		$(LOCAL_PATH)/libutils/include/c++/4.9.x/aarch64-linux-android
+	$(LOCAL_PATH)/libutils/include \
+	$(LOCAL_PATH)/expat \
+	$(LOCAL_PATH)/include \
+	$(LOCAL_PATH)/libutils/include/c++/4.9.x \
+	$(LOCAL_PATH)/libutils/include/c++/4.9.x/aarch64-linux-android
 
 LOCAL_MODULE:= libutils
 LOCAL_CFLAGS += $(libutils_CFLAGS)
@@ -119,15 +119,15 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := subscompile
 LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/include \
-		$(LOCAL_PATH)/libutils/include \
-		$(LOCAL_PATH)/expat \
-		$(LOCAL_PATH)/libutils/include/c++/4.9.x \
-		$(LOCAL_PATH)/libutils/include/c++/4.9.x/aarch64-linux-android
+	$(LOCAL_PATH)/include \
+	$(LOCAL_PATH)/libutils/include \
+	$(LOCAL_PATH)/expat \
+	$(LOCAL_PATH)/libutils/include/c++/4.9.x \
+	$(LOCAL_PATH)/libutils/include/c++/4.9.x/aarch64-linux-android
 
 LOCAL_SRC_FILES := \
-		Main.cpp \
-		aapt_jni.cpp
+	Main.cpp \
+	aapt_jni.cpp
 LOCAL_LDLIBS := -llog -lc  -landroid -lz
 LOCAL_STATIC_LIBRARIES := libutils libandroidfw
 LOCAL_LDFLAGS := -shared

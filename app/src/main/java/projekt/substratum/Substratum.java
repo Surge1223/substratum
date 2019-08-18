@@ -41,6 +41,7 @@ import projekt.substratum.common.Packages;
 import projekt.substratum.common.References;
 import projekt.substratum.common.Systems;
 import projekt.substratum.common.platform.ThemeManager;
+import projekt.substratum.compiler.aapt.Aapt;
 import projekt.substratum.services.binder.AndromedaBinderService;
 import projekt.substratum.services.binder.InterfacerBinderService;
 
@@ -375,6 +376,16 @@ public class Substratum extends Application {
         }
     }
 
+    public void runAapt() throws Exception {
+        Aapt aapt = new Aapt();
+        String filesDir = getFilesDir().getAbsolutePath();
+        int exitCode = aapt.fnExecute(filesDir + "/aapt >./test.txt");
+
+        if (exitCode != 0) {
+            throw new Exception("AAPT exit(" + exitCode + ")");
+        }
+
+    }
     /**
      * A persistent receiver that detects whether an application is installed by Substratum
      */
