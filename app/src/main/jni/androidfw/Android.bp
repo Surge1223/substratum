@@ -1,0 +1,92 @@
+// Copyright (C) 2010 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// libandroidfw is partially built for the host (used by obbtool, aapt, and others)
+
+cc_library {
+    name: "libandroidfw \
+    host_supported: true,
+    cflags: [
+ androidfw/jni/-Wall \
+ androidfw/jni/-Werror \
+ androidfw/jni/-Wunused \
+ androidfw/jni/-Wunreachable-code \
+    ],
+    srcs: [
+ androidfw/jni/ApkAssets.cpp \
+ androidfw/jni/Asset.cpp \
+ androidfw/jni/AssetDir.cpp \
+ androidfw/jni/AssetManager.cpp \
+ androidfw/jni/AssetManager2.cpp \
+ androidfw/jni/AttributeResolution.cpp \
+ androidfw/jni/ChunkIterator.cpp \
+ androidfw/jni/LoadedArsc.cpp \
+ androidfw/jni/LocaleData.cpp \
+ androidfw/jni/misc.cpp \
+ androidfw/jni/ObbFile.cpp \
+ androidfw/jni/ResourceTypes.cpp \
+ androidfw/jni/ResourceUtils.cpp \
+ androidfw/jni/StreamingZipInflater.cpp \
+ androidfw/jni/TypeWrappers.cpp \
+ androidfw/jni/Util.cpp \
+ androidfw/jni/ZipFileRO.cpp \
+ androidfw/jni/ZipUtils.cpp \
+    ],
+    export_include_dirs: ["include"],
+    target: {
+        android: {
+            srcs: [
+         androidfw/jni/BackupData.cpp \
+         androidfw/jni/BackupHelpers.cpp \
+         androidfw/jni/CursorWindow.cpp \
+         androidfw/jni/DisplayEventDispatcher.cpp \
+            ],
+            shared_libs: [
+         androidfw/jni/libziparchive \
+         androidfw/jni/libbase \
+         androidfw/jni/libbinder \
+         androidfw/jni/liblog \
+         androidfw/jni/libcutils \
+         androidfw/jni/libgui \
+         androidfw/jni/libutils \
+         androidfw/jni/libz \
+            ],
+            static: {
+                enabled: false,
+            },
+        },
+        host: {
+            cflags: ["-DSTATIC_ANDROIDFW_FOR_TOOLS"],
+            shared: {
+                enabled: false,
+            },
+            static_libs: [
+         androidfw/jni/libziparchive \
+         androidfw/jni/libbase \
+         androidfw/jni/liblog \
+         androidfw/jni/libcutils \
+         androidfw/jni/libutils \
+            ],
+            shared_libs: [
+         androidfw/jni/libz-host \
+            ],
+        },
+        windows: {
+            enabled: true,
+            cppflags: ["-Wno-missing-field-initializers"],  // The Windows compiler warns
+                                                            // incorrectly for value
+                                                            // initialization with {}.
+        },
+    },
+}

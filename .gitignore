@@ -11,7 +11,7 @@ keystore.properties
 *.jks
 output.json
 /app/.cxx
-app/src/main/libs/
+app/src/main/libs/*/*.so
 *.o
 *o.d
 /app/src/main/jni/obj
