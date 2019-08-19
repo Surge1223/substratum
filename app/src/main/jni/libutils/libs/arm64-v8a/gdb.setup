@@ -1,2 +1,0 @@
-set solib-search-path ./obj/local/arm64-v8a
-directory /opt/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/sysroot /opt/sdk/ndk-bundle/sources/cxx-stl/system include ../../libcutils/jni/include /opt/sdk/ndk-bundle/sources/cxx-stl/llvm-libc++/include include/external/safe-iop/include /opt/sdk/ndk-bundle/sources/cxx-stl/system/include

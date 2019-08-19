@@ -53,10 +53,6 @@ android {
         buildConfigField("java.util.Date", "buildTime", "new java.util.Date(${System.currentTimeMillis()}L)")
         buildConfigField("String", "GIT_HASH", "\"${gitHash()}\"")
         setProperty("archivesBaseName", "substratum_${gitHash()}")
-        defaultConfig.ndk {
-            moduleName = "subscompile"
-            abiFilters("arm64-v8a")
-        }
     }
 
     compileOptions {
@@ -70,20 +66,6 @@ android {
             jniLibs.srcDirs("libs")
             jniLibs.srcDir("src/main/libs")
         }
-    }
-
-    externalNativeBuild {
-        ndkBuild {
-            setPath("src/main/jni/Android.mk")
-        }
-    }
-
-    packagingOptions {
-        pickFirst("lib/x86_64/libsubscompile.so")
-        pickFirst("lib/armeabi/libsubscompile.so")
-        pickFirst("lib/x86/libsubscompile.so")
-        pickFirst("lib/armeabi-v7a/libsubscompile.so")
-        pickFirst("lib/arm64-v8a/libsubscompile.so")
     }
 
     if (keystorePropertiesFile.exists()) {
