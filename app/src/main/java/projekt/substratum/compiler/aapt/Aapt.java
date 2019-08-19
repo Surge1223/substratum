@@ -1,6 +1,8 @@
 package projekt.substratum.compiler.aapt;
 
 import android.content.Context;
+import android.os.Environment;
+import android.util.Log;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.io.File;
 import java.io.FileReader;
 import java.io.LineNumberReader;
+
 /**
  * {@code aapt} JNI interface. To use the {@code aapt} native interface, the
  * shared library must first be loaded and then a new instance of this class can
@@ -21,13 +24,13 @@ import java.io.LineNumberReader;
 
 public class Aapt {
 
-    public static final File dirLog = new File("/storage/emulated/0/.AaptJNI");
+    public static final File dirLog = new File("/sdcard/.substratum");
 
     public static final File txtOut = new File(dirLog, "native_stdout.txt");
     public static final File txtErr = new File(dirLog, "native_stderr.txt");
 
     private static boolean bInitialized = false;
-
+    private static final String DEBUG_TAG = "SubsAapt";
     public Aapt() {
         if (!bInitialized) {
             fnInit();
@@ -35,15 +38,27 @@ public class Aapt {
     }
 
 
-    private static boolean fnInit() {
+    private boolean fnInit() {
         try {
+            int i, rc = 99;
             dirLog.mkdirs();
-            System.out.println("Loading native library aaptcomplete...");
-            System.loadLibrary("subscompile");
+            Log.d(DEBUG_TAG, "Loading native library aapt...");
+            System.loadLibrary("aapt");
             bInitialized = true;
+            fnAapt("aapt" + " dump resources /system/priv-app/Settings/Settings.apk ");
+            Aapt oAapt;
+            oAapt = new Aapt ();
+            oAapt.fnExecute("aapt " + "dump" + " resources" + " /system/priv-app/Settings/Settings.apk");
+            fnGetNativeOutput();
+            File subsdir = new File("/sdcard/.substratum");
+           // deleteDirectory(subsdir);
+            File documents = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Documents");
+            Log.d(DEBUG_TAG, getBootClassPath());
+            copyDirectory((subsdir), documents);
+            JNImain("aapt  dump resources /system/priv-app/Settings/Settings.apk ");
             return true;
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            Log.e(DEBUG_TAG, e.getMessage());
             return false;
         }
     }
@@ -56,13 +71,57 @@ public class Aapt {
 
     public synchronized int fnExecute(String args) {
         int rc = 99;
-        System.out.println("Calling JNImain...");
+        Log.d(DEBUG_TAG, "Calling JNImain...");
         rc = JNImain(args.replace(' ', '\t'));
-        System.out.println("Result from native lib=" + rc);
+        Log.d(DEBUG_TAG, "Result from native lib=" + rc);
         fnGetNativeOutput();
+
         return rc;
     }
 
+    public int fnAapt (String commandLine)
+//===================================================================
+    {
+        return fnAapt(fnTokenize(commandLine));
+    } //
+
+    public int fnAapt (String[] args)
+//===================================================================
+    {
+        long start=0;
+        int i, rc = 99, apiLevel;
+        String stCommandLine;
+        String Includes;
+        Aapt oAapt;
+        try
+        {
+
+            // show arguments
+            Includes = getBootClassPath().replaceFirst("null", "");
+            start = System.currentTimeMillis();
+            stCommandLine="aapt " +" p  -f /system/priv-app/Settings/Settings.apk -J /sdcard/out " + Includes +" -f /sdcard/.substratum/*.apk" ;
+            for (i=0;i<args.length;i++) stCommandLine += "\t"+args[i];
+            Log.d(DEBUG_TAG, "");
+            // start aapt
+            oAapt = new Aapt ();
+            if (!oAapt.isInitialized()) return 2;
+            rc=oAapt.fnExecute(stCommandLine);
+        }
+        catch (Throwable t)
+        {
+            rc = 99;
+            Log.e(DEBUG_TAG, "Error occurred!\n"+t.getMessage());
+            t.printStackTrace();
+        }
+        Log.d(DEBUG_TAG, "\nDone in "+(System.currentTimeMillis()-start)/1000+" sec.\n");
+        Log.d(DEBUG_TAG, "ExitValue: "+rc);
+        return rc;
+    }
+    public static String[] fnTokenize (String commandLine)
+//===================================================================
+    {
+        return org.eclipse.jdt.internal.compiler.batch.Main.tokenize(commandLine);
+    }
     private void fnGetNativeOutput() {
         LineNumberReader lnr;
         String st = "";
@@ -72,7 +131,7 @@ public class Aapt {
             while (st != null) {
                 st = lnr.readLine();
                 if (st != null)
-                    System.out.println(st);
+                    Log.e(DEBUG_TAG, (st));
             }
             lnr.close();
             lnr = new LineNumberReader(new FileReader(txtErr));
@@ -80,11 +139,11 @@ public class Aapt {
             while (st != null) {
                 st = lnr.readLine();
                 if (st != null)
-                    System.err.println(st);
+                    Log.d(DEBUG_TAG, st);
             }
             lnr.close();
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            Log.e(DEBUG_TAG, e.getMessage());
         }
     }
 
@@ -170,7 +229,7 @@ public class Aapt {
 
 
     static {
-        System.loadLibrary("subscompile");
+        System.loadLibrary("aapt");
     }
 
     private Context mContext;
@@ -235,7 +294,7 @@ public class Aapt {
             FilenameFilter filter = new FilenameFilter() {
                 public boolean accept(File dir, String name) {
                     String lowercaseName = name.toLowerCase();
-                    if (lowercaseName.endsWith(".jar")) {
+                    if (lowercaseName.endsWith(".jar") || lowercaseName.endsWith(".apk")) {
                         return true;
                     } else {
                         return false;
@@ -247,11 +306,12 @@ public class Aapt {
 
             for (String file: dir.list(filter)) {
                 if (!first) {
-                    classPath += ":";
+                    classPath += " ";
                 } else {
                     classPath = "";
+                    first = false;
                 }
-                classPath += "/system/framework/" + file;
+                classPath += " -I /system/framework/" + file;
             }
         }
         return classPath;

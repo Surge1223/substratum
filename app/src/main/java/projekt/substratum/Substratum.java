@@ -379,7 +379,14 @@ public class Substratum extends Application {
     public void runAapt() throws Exception {
         Aapt aapt = new Aapt();
         String filesDir = getFilesDir().getAbsolutePath();
-        int exitCode = aapt.fnExecute(filesDir + "/aapt >./test.txt");
+            final boolean initialized = aapt.isInitialized();
+        int exitCode = aapt.fnExecute("aapt" + " p");
+
+        if (initialized) {
+                log("SubsAapt", " Initialized");
+                aapt.fnAapt(new String[]{"aapt  p "});
+            }
+            aapt.fnAapt("aapt v");
 
         if (exitCode != 0) {
             throw new Exception("AAPT exit(" + exitCode + ")");

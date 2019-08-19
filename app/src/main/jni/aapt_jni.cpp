@@ -4,7 +4,6 @@
 #include <time.h>
 #include <string.h>
 #include <libgen.h>
-#include <sys/system_properties.h>
 #include <jni.h>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
@@ -14,7 +13,7 @@
 
 #define DEBUG_TAG "SubsAapt"
 
-jint Java_projekt_substratum_compiler_aapt_Aapt_JNImain(JNIEnv *env, jobject , jstring args) {
+extern "C" jint Java_projekt_substratum_compiler_aapt_Aapt_JNImain(JNIEnv *env, jobject , jstring args) {
 	jboolean isCopy;
 	const char *sz = env->GetStringUTFChars(args, JNI_FALSE);
 	char *ptr1, *ptr2;
